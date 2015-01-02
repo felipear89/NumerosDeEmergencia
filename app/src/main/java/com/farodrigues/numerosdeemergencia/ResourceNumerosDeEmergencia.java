@@ -24,11 +24,4 @@ public class ResourceNumerosDeEmergencia {
         return numerosDeEmergenciaBrasileiros;
     }
 
-    public List<String> getLabels() {
-        List<String> list = new ArrayList<String>();
-        for (NumeroDeEmergencia numeroDeEmergencia : numerosDeEmergenciaBrasileiros) {
-            list.add(numeroDeEmergencia.getNome());
-        }
-        return list;
-    }
 }

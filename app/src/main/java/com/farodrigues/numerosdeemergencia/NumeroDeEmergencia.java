@@ -26,4 +26,9 @@ public class NumeroDeEmergencia {
         }
         return false;
     }
+
+    @Override
+    public String toString() {
+        return nome;
+    }
 }

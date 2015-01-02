@@ -1,9 +1,14 @@
 package com.farodrigues.numerosdeemergencia;
 
+import android.content.Context;
+import android.content.Intent;
+import android.net.Uri;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
@@ -14,7 +19,7 @@ import java.util.List;
 public class MainActivity extends ActionBarActivity {
 
     ListView listNumerosDeEmergencia;
-    ArrayAdapter<String> listAdapterNumerosDeEmergencia;
+    NumeroDeEmergenciaAdapter<NumeroDeEmergencia> listAdapterNumerosDeEmergencia;
     ResourceNumerosDeEmergencia resourceNumerosDeEmergencia;
 
     @Override
@@ -25,10 +30,19 @@ public class MainActivity extends ActionBarActivity {
 
         resourceNumerosDeEmergencia = new ResourceNumerosDeEmergencia();
 
-        List<String> listValues = resourceNumerosDeEmergencia.getLabels();
-
-        listAdapterNumerosDeEmergencia = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, listValues);
+        listAdapterNumerosDeEmergencia = new NumeroDeEmergenciaAdapter<NumeroDeEmergencia>(this, android.R.layout.simple_list_item_1,
+                resourceNumerosDeEmergencia.getNumerosDeEmergenciaBrasileiros());
         listNumerosDeEmergencia.setAdapter(listAdapterNumerosDeEmergencia);
+        listNumerosDeEmergencia.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                NumeroDeEmergencia numeroDeEmergenciaSelecionado = (NumeroDeEmergencia) parent.getItemAtPosition(position);
+                Intent callIntent = new Intent(Intent.ACTION_CALL);
+                callIntent.setData(Uri.parse("tel:"+numeroDeEmergenciaSelecionado.getNumero()));
+                startActivity(callIntent);
+            }
+        });
 
     }
 
@@ -54,4 +68,12 @@ public class MainActivity extends ActionBarActivity {
 
         return super.onOptionsItemSelected(item);
     }
+
+    public class NumeroDeEmergenciaAdapter<T> extends ArrayAdapter {
+
+        public NumeroDeEmergenciaAdapter(Context context, int resource, List objects) {
+            super(context, resource, objects);
+        }
+    }
+
 }
