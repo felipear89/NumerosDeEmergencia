@@ -10,40 +10,64 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.ListView;
+import android.widget.Toast;
 
-import java.util.ArrayList;
 import java.util.List;
-
 
 public class MainActivity extends ActionBarActivity {
 
     ListView listNumerosDeEmergencia;
+    Button btnGetLocation;
+
     NumeroDeEmergenciaAdapter<NumeroDeEmergencia> listAdapterNumerosDeEmergencia;
+
     ResourceNumerosDeEmergencia resourceNumerosDeEmergencia;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        listNumerosDeEmergencia = (ListView) findViewById(R.id.listNumerosDeEmergencia);
+
+        listNumerosDeEmergencia = (ListView) findViewById(R.id.list_emergency_numbers);
+        btnGetLocation = (Button) findViewById(R.id.btn_get_location);
+
 
         resourceNumerosDeEmergencia = new ResourceNumerosDeEmergencia();
 
-        listAdapterNumerosDeEmergencia = new NumeroDeEmergenciaAdapter<NumeroDeEmergencia>(this, android.R.layout.simple_list_item_1,
+        handleListNumerosDeEmergencia();
+        handleBtnGetLocation();
+
+    }
+
+    private void handleBtnGetLocation() {
+        btnGetLocation.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+
+            }
+        });
+    }
+
+    private void handleListNumerosDeEmergencia() {
+
+        listAdapterNumerosDeEmergencia = new NumeroDeEmergenciaAdapter<NumeroDeEmergencia>(this,
+                android.R.layout.simple_list_item_1,
                 resourceNumerosDeEmergencia.getNumerosDeEmergenciaBrasileiros());
+
         listNumerosDeEmergencia.setAdapter(listAdapterNumerosDeEmergencia);
+
         listNumerosDeEmergencia.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 NumeroDeEmergencia numeroDeEmergenciaSelecionado = (NumeroDeEmergencia) parent.getItemAtPosition(position);
                 Intent callIntent = new Intent(Intent.ACTION_CALL);
-                callIntent.setData(Uri.parse("tel:"+numeroDeEmergenciaSelecionado.getNumero()));
+                callIntent.setData(Uri.parse("tel:" + numeroDeEmergenciaSelecionado.getNumero()));
                 startActivity(callIntent);
             }
         });
-
     }
 
 
