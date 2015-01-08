@@ -2,7 +2,7 @@
 <resources>
 
     <string name="app_name">Emergência</string>
-    <string name="action_settings">Settings</string>
+    <string name="action_new_number">Cadastrar novo número</string>
     <string name="enable_gps">Ligar GPS</string>
 
 </resources>

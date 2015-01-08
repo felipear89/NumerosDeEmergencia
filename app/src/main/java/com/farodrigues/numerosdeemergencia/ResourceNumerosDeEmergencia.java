@@ -15,9 +15,9 @@ public class ResourceNumerosDeEmergencia {
 
     public ResourceNumerosDeEmergencia() {
         numerosDeEmergenciaBrasileiros = new ArrayList<>();
-        numerosDeEmergenciaBrasileiros.add(new NumeroDeEmergencia("Policia Militar", "190"));
-        numerosDeEmergenciaBrasileiros.add(new NumeroDeEmergencia("Bombeiros", "193"));
-        numerosDeEmergenciaBrasileiros.add(new NumeroDeEmergencia("Ambulância", "192"));
+        numerosDeEmergenciaBrasileiros.add(new NumeroDeEmergencia("190 - Policia Militar", "190"));
+        numerosDeEmergenciaBrasileiros.add(new NumeroDeEmergencia("193 - Bombeiros", "193"));
+        numerosDeEmergenciaBrasileiros.add(new NumeroDeEmergencia("192 - Ambulância", "192"));
     }
 
     public List<NumeroDeEmergencia> getNumerosDeEmergenciaBrasileiros() {

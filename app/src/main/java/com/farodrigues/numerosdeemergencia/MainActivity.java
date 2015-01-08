@@ -26,14 +26,17 @@ import java.util.Locale;
 
 public class MainActivity extends ActionBarActivity {
 
+    public static final String NENHUM_ENDEREÇO_ENCONTRADO = "Nenhum endereço encontrado, verifique sua internet";
     ListView listNumerosDeEmergencia;
     Button btnGetLocation;
     TextView txtCurrentLocation;
+    TextView txtProblemMsg;
 
     NumeroDeEmergenciaAdapter<NumeroDeEmergencia> listAdapterNumerosDeEmergencia;
 
     ResourceNumerosDeEmergencia resourceNumerosDeEmergencia;
     LocationManager locationManager;
+    LocationListener locationListener;
 
 
     @Override
@@ -41,54 +44,73 @@ public class MainActivity extends ActionBarActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        listNumerosDeEmergencia = (ListView) findViewById(R.id.list_emergency_numbers);
-        btnGetLocation = (Button) findViewById(R.id.btn_get_location);
-        txtCurrentLocation = (TextView) findViewById(R.id.txt_current_location);
+        populateViews();
 
         resourceNumerosDeEmergencia = new ResourceNumerosDeEmergencia();
         locationManager = (LocationManager) getApplicationContext().getSystemService(Context.LOCATION_SERVICE);
 
         handleListNumerosDeEmergencia();
-        handleBtnGetLocation();
-        handleCurrentLocationListener(locationManager);
+        createLocationListener();
 
+    }
+
+    private void populateViews() {
+        listNumerosDeEmergencia = (ListView) findViewById(R.id.list_emergency_numbers);
+        btnGetLocation = (Button) findViewById(R.id.btn_get_location);
+        txtCurrentLocation = (TextView) findViewById(R.id.txt_current_location);
+        txtProblemMsg = (TextView) findViewById(R.id.txt_problem_msg);
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        handleBtnGetLocation();
+        createRequestLocationUpdate();
+        handleBtnGpsEnabled();
     }
 
-    private void handleCurrentLocationListener(final LocationManager locationManager) {
+    @Override
+    protected void onPause() {
+        super.onPause();
+        locationManager.removeUpdates(locationListener);
+    }
+
+    private void createLocationListener() {
 
         // Define a listener that responds to location updates
-        LocationListener locationListener = new LocationListener() {
+        this.locationListener = new LocationListener() {
             public void onLocationChanged(Location location) {
                 (new GetAddressTask(getApplicationContext())).execute(location);
             }
 
             public void onStatusChanged(String provider, int status, Bundle extras) {}
 
-            public void onProviderEnabled(String provider) {}
+            public void onProviderEnabled(String provider) {
+                handleBtnGpsEnabled();
+            }
 
             public void onProviderDisabled(String provider) {
-                System.out.println("Desativado");
-                /** TODO Exibir alerta para habilitar GPS */
+                handleBtnGpsEnabled();
             }
         };
-
-        // Register the listener with the Location Manager to receive location updates
-        float minDistanceInMeters = 50;
-        long minTimeInMillis = 30l * 1000L;
-        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, minTimeInMillis, minDistanceInMeters, locationListener);
     }
 
-    private void handleBtnGetLocation() {
+    private void createRequestLocationUpdate() {
+        // Register the listener with the Location Manager to receive location updates
+        float minDistanceInMeters = 5;
+        long minTimeInMillis = 5l * 1000L;
+        this.locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, minTimeInMillis, minDistanceInMeters, locationListener);
+    }
+
+    private void handleBtnGpsEnabled() {
 
         if (isGpsEnabled()) {
             btnGetLocation.setVisibility(View.INVISIBLE);
+            txtProblemMsg.setText("");
+            txtCurrentLocation.setText("Procurando localização atual");
         } else {
+            btnGetLocation.setVisibility(View.VISIBLE);
+            txtCurrentLocation.setText("");
+            txtProblemMsg.setText("Sem sinal de GPS");
             btnGetLocation.setOnClickListener(new View.OnClickListener() {
                 public void onClick(View v) {
                     startActivity(new Intent(android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS));
@@ -125,7 +147,11 @@ public class MainActivity extends ActionBarActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_main, menu);
+
+        // TODO Habilitar menu
+        //getMenuInflater().inflate(R.menu.menu_main, menu);
+
+
         return true;
     }
 
@@ -137,7 +163,7 @@ public class MainActivity extends ActionBarActivity {
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
+        if (id == R.id.action_new_number) {
             return true;
         }
 
@@ -188,12 +214,16 @@ public class MainActivity extends ActionBarActivity {
             }
 
 
-            return "";
+            return NENHUM_ENDEREÇO_ENCONTRADO;
         }
 
         @Override
         protected void onPostExecute(String address) {
-            txtCurrentLocation.setText(address);
+            if (!address.equals(NENHUM_ENDEREÇO_ENCONTRADO) || (address.equals(NENHUM_ENDEREÇO_ENCONTRADO) && isGpsEnabled()) ) {
+                txtCurrentLocation.setText(address);
+            } else {
+                txtCurrentLocation.setText("");
+            }
         }
     }
 
