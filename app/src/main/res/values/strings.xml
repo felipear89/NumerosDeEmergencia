@@ -1,8 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-
     <string name="app_name">Emergência</string>
-    <string name="action_new_number">Cadastrar novo número</string>
+    <string name="contacts">Contatos</string>
     <string name="enable_gps">Ligar GPS</string>
-
+    <string name="title_activity_contact">Contatos</string>
+    <string name="add">Adicionar</string>
+    <string name="title_activity_new_contact">Adicionar Contato</string>
+    <string name="name">Nome</string>
+    <string name="phone">Telefone</string>
+    <string name="save">Salvar</string>
+    <string name="delete">Deletar</string>
+    <string name="update">Atualizar</string>
 </resources>

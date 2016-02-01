@@ -9,8 +9,8 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.net.Uri;
 import android.os.AsyncTask;
-import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -20,45 +20,39 @@ import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import com.farodrigues.numerosdeemergencia.model.Contact;
+
 import java.io.IOException;
 import java.util.List;
 import java.util.Locale;
 
-public class MainActivity extends ActionBarActivity {
+public class MainActivity extends AppCompatActivity {
 
-    public static final String NENHUM_ENDEREÇO_ENCONTRADO = "Nenhum endereço encontrado, verifique sua internet";
-    ListView listNumerosDeEmergencia;
-    Button btnGetLocation;
-    TextView txtCurrentLocation;
-    TextView txtProblemMsg;
-
-    NumeroDeEmergenciaAdapter<NumeroDeEmergencia> listAdapterNumerosDeEmergencia;
-
-    ResourceNumerosDeEmergencia resourceNumerosDeEmergencia;
-    LocationManager locationManager;
-    LocationListener locationListener;
-
+    public static final String ADDRESS_NOT_FOUND = "Nenhum endereço encontrado, verifique sua internet";
+    private ListView listViewEmergencyContacts;
+    private Button btnGetLocation;
+    private TextView txtCurrentLocation;
+    private TextView txtProblemMsg;
+    private EmergencyContactAdapter<Contact> emergencyContactsAdapter;
+    private LocationManager locationManager;
+    private LocationListener locationListener;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
         populateViews();
-
-        resourceNumerosDeEmergencia = new ResourceNumerosDeEmergencia();
         locationManager = (LocationManager) getApplicationContext().getSystemService(Context.LOCATION_SERVICE);
-
         handleListNumerosDeEmergencia();
         createLocationListener();
 
     }
 
     private void populateViews() {
-        listNumerosDeEmergencia = (ListView) findViewById(R.id.list_emergency_numbers);
-        btnGetLocation = (Button) findViewById(R.id.btn_get_location);
-        txtCurrentLocation = (TextView) findViewById(R.id.txt_current_location);
-        txtProblemMsg = (TextView) findViewById(R.id.txt_problem_msg);
+        listViewEmergencyContacts = (ListView) findViewById(R.id.listView_emergencyNumbers);
+        btnGetLocation = (Button) findViewById(R.id.btn_getLocation);
+        txtCurrentLocation = (TextView) findViewById(R.id.txt_currentLocation);
+        txtProblemMsg = (TextView) findViewById(R.id.txt_problemMsg);
     }
 
     @Override
@@ -82,7 +76,8 @@ public class MainActivity extends ActionBarActivity {
                 (new GetAddressTask(getApplicationContext())).execute(location);
             }
 
-            public void onStatusChanged(String provider, int status, Bundle extras) {}
+            public void onStatusChanged(String provider, int status, Bundle extras) {
+            }
 
             public void onProviderEnabled(String provider) {
                 handleBtnGpsEnabled();
@@ -95,7 +90,6 @@ public class MainActivity extends ActionBarActivity {
     }
 
     private void createRequestLocationUpdate() {
-        // Register the listener with the Location Manager to receive location updates
         float minDistanceInMeters = 5;
         long minTimeInMillis = 5l * 1000L;
         this.locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, minTimeInMillis, minDistanceInMeters, locationListener);
@@ -125,19 +119,17 @@ public class MainActivity extends ActionBarActivity {
 
     private void handleListNumerosDeEmergencia() {
 
-        listAdapterNumerosDeEmergencia = new NumeroDeEmergenciaAdapter<NumeroDeEmergencia>(this,
-                android.R.layout.simple_list_item_1,
-                resourceNumerosDeEmergencia.getNumerosDeEmergenciaBrasileiros());
+        emergencyContactsAdapter = new EmergencyContactAdapter<>(this, android.R.layout.simple_list_item_1, BrazilianEmergencyNumbers.getNumbers());
 
-        listNumerosDeEmergencia.setAdapter(listAdapterNumerosDeEmergencia);
+        listViewEmergencyContacts.setAdapter(emergencyContactsAdapter);
 
-        listNumerosDeEmergencia.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        listViewEmergencyContacts.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                NumeroDeEmergencia numeroDeEmergenciaSelecionado = (NumeroDeEmergencia) parent.getItemAtPosition(position);
+                Contact selectedContact = (Contact) parent.getItemAtPosition(position);
                 Intent callIntent = new Intent(Intent.ACTION_CALL);
-                callIntent.setData(Uri.parse("tel:" + numeroDeEmergenciaSelecionado.getNumero()));
+                callIntent.setData(Uri.parse("tel:" + selectedContact.getNumber()));
                 startActivity(callIntent);
             }
         });
@@ -146,33 +138,24 @@ public class MainActivity extends ActionBarActivity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-
-        // TODO Habilitar menu
-        //getMenuInflater().inflate(R.menu.menu_main, menu);
-
-
+        getMenuInflater().inflate(R.menu.menu_main, menu);
         return true;
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_new_number) {
+        if (id == R.id.menu_contacts) {
+            Intent intent = new Intent(this, ContactActivity.class);
+            startActivity(intent);
             return true;
         }
-
         return super.onOptionsItemSelected(item);
     }
 
-    public class NumeroDeEmergenciaAdapter<T> extends ArrayAdapter {
+    public class EmergencyContactAdapter<T> extends ArrayAdapter {
 
-        public NumeroDeEmergenciaAdapter(Context context, int resource, List objects) {
+        public EmergencyContactAdapter(Context context, int resource, List objects) {
             super(context, resource, objects);
         }
     }
@@ -187,39 +170,27 @@ public class MainActivity extends ActionBarActivity {
 
         @Override
         protected String doInBackground(Location... params) {
-
-
             Geocoder geocoder = new Geocoder(mContext, Locale.getDefault());
             Location location = params[0];
-
             try {
                 List<Address> addresses = geocoder.getFromLocation(location.getLatitude(), location.getLongitude(), 1);
                 if (addresses != null && addresses.size() > 0) {
                     Address address = addresses.get(0);
-                    String addressText = String.format(
-                            "%s, %s, %s",
-                            // If there's a street address, add it
-                            address.getMaxAddressLineIndex() > 0 ?
-                                    address.getAddressLine(0) : "",
-                            // Locality is usually a city
+                    String addressText = String.format("%s, %s, %s",
+                            address.getMaxAddressLineIndex() > 0 ? address.getAddressLine(0) : "",
                             address.getLocality(),
-                            // The country of the address
                             address.getCountryName());
                     return addressText;
                 }
-
-
             } catch (IOException e) {
                 e.printStackTrace();
             }
-
-
-            return NENHUM_ENDEREÇO_ENCONTRADO;
+            return ADDRESS_NOT_FOUND;
         }
 
         @Override
         protected void onPostExecute(String address) {
-            if (!address.equals(NENHUM_ENDEREÇO_ENCONTRADO) || (address.equals(NENHUM_ENDEREÇO_ENCONTRADO) && isGpsEnabled()) ) {
+            if (!address.equals(ADDRESS_NOT_FOUND) || (address.equals(ADDRESS_NOT_FOUND) && isGpsEnabled()) ) {
                 txtCurrentLocation.setText(address);
             } else {
                 txtCurrentLocation.setText("");
